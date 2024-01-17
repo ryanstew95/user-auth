@@ -1,8 +1,10 @@
 const express = require('express');
 const morgan = require('morgan');
-
+const cookieParser = require('cookie-parser');
 // constants
 const app = express();
+app.use(cookieParser())
+
 const port = 8001;
 
 // configuration
@@ -52,7 +54,25 @@ if (foundUser.password !== password) {
   return res.status(400).send('the passwords do not match');
 }
 
+res.cookie('userId', foundUser.id);
+res.redirect('/protected');
+});
 
+// protected endpoint
+app.get('/protected', (req, res) => {
+const userId = req.cookies.userId;
+
+if (!userId) {
+  res.status(401).send('you are unauthorized')
+}
+
+const user = users[userId];
+
+const templateVars = {
+user: user
+};
+
+res.render('protected', templateVars);
 });
 
 app.listen(port, () => {
